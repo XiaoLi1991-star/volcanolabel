@@ -10,7 +10,7 @@ with stronger defaults for label-heavy figures. The package does not read input
 files, transform p-values, classify genes, or decide which genes should be
 labelled; those analysis choices stay in your own workflow.
 
-![volcanolabel example](man/figures/README-example-safe-axis.png)
+![volcanolabel example](man/figures/README-auto-ring-redraw-v2.png)
 
 ## Install
 
@@ -38,6 +38,10 @@ The minimum useful inputs are:
 - an optional point group/color column;
 - an optional label column, with `NA` or `""` for rows that should not be labelled.
 
+The bundled table is only demonstration data. Gene identifiers have been
+anonymized, while the numeric plotting columns are kept useful for layout
+testing.
+
 ```r
 library(volcanolabel)
 
@@ -51,15 +55,19 @@ expr <- read.table(
 
 x_cutoff <- log2(1.2)
 y_cutoff <- -log10(0.05)
-genes_to_label <- c("Vip", "Sst", "Gad1", "Gad2", "Slc17a7", "Pvalb", "Rps6ka2")
+genes_to_label <- c(
+  "Mefra", "Ashor", "Cavrel", "Halen3", "Kavo2", "Cirob2", "Ralon6", "Esvam", "Pavon",
+  "Ervon", "Hivra", "Ilven1", "Tavrel", "Auvon", "Dorin", "Pavri4", "Corin",
+  "Viren", "Gavon2", "Sorin", "Laxen7", "Gavon1"
+)
 custom_palette <- c(
   Up = "#B42318",
-  Normal = "#DDEAF7",
+  Normal = "#B8C2CC",
   Down = "#0077B6"
 )
 
 expr$neg_log10_p <- -log10(pmax(expr$pvalue, .Machine$double.xmin))
-expr$direction <- ifelse(
+expr$Regulation <- ifelse(
   expr$log2FC >= x_cutoff & expr$neg_log10_p >= y_cutoff,
   "Up",
   ifelse(expr$log2FC <= -x_cutoff & expr$neg_log10_p >= y_cutoff, "Down", "Normal")
@@ -71,7 +79,7 @@ p <- volcano_plot(
   x = "log2FC",
   y = "neg_log10_p",
   label = "plot_label",
-  color = "direction",
+  color = "Regulation",
   palette = custom_palette,
   x_cutoff = x_cutoff,
   y_cutoff = y_cutoff,
@@ -80,6 +88,11 @@ p <- volcano_plot(
   label_point_ring_color = "auto",
   label_point_ring_normal_color = "auto",
   label_point_ring_alpha = 0.95,
+  label_anchor_x_left = -5.0,
+  label_anchor_x_right = 5.0,
+  plot_xmax = 5.9,
+  xlab = "log2FC",
+  ylab = "-log10(pvalue)",
   title = "Neuron marker volcano",
   subtitle = "Outside labels keep selected genes readable"
 )
@@ -93,18 +106,22 @@ save_volcano(p, "volcano_plot.pdf", width = 7.4, height = 5.4)
 Custom palettes are named vectors. `label_point_ring_color = "auto"` derives a
 visible same-family ring from each group color, including `Up`, `Down`, and
 `Normal`. Use `"group"` when you want the ring to exactly match the point group.
-The README figure uses a custom palette intentionally so the auto-ring rule is
-easy to inspect. The small dots beside outside labels stay in the original
-group colors; the adaptive ring is drawn around the labelled source point in
-the point cloud.
+The small dots beside outside labels stay in the original group colors; the
+adaptive ring is drawn around the labelled source point in the point cloud.
 
 ```r
-volcano_plot(
+custom_palette <- c(
+  Up = "#B42318",
+  Normal = "#DDEAF7",
+  Down = "#0077B6"
+)
+
+p <- volcano_plot(
   expr,
   x = "log2FC",
   y = "neg_log10_p",
   label = "plot_label",
-  color = "direction",
+  color = "Regulation",
   palette = custom_palette,
   x_cutoff = x_cutoff,
   y_cutoff = y_cutoff,
@@ -162,7 +179,7 @@ short suffixes so repeated truncated labels stay distinguishable.
 
 ## Release Checks
 
-Before publishing version 0.1.0, the package was checked with:
+Before publishing the package, it was checked with:
 
 ```r
 devtools::test("volcanolabel")

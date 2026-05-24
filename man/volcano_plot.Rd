@@ -34,6 +34,8 @@ volcano_plot(
   label_point_ring_stroke = 0.85,
   label_wrap_width = "auto",
   label_max_lines = "auto",
+  label_anchor_x_left = NULL,
+  label_anchor_x_right = NULL,
   plot_xmax = NULL,
   ymax = NULL,
   base_size = 12,
@@ -94,6 +96,10 @@ from label length and density.}
 
 \item{label_max_lines}{Maximum number of lines per label before capping with
 an ellipsis. Use \code{"auto"} to allow more detail only when labels are sparse.}
+
+\item{label_anchor_x_left, label_anchor_x_right}{Optional x positions for the
+left and right outside label anchor columns. Leave as \code{NULL} for automatic
+placement.}
 
 \item{plot_xmax}{Optional x-axis half-width.}
 

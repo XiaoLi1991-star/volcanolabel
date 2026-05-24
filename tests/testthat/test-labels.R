@@ -18,13 +18,13 @@ test_that("wrap_volcano_labels can cap very long labels with ellipsis", {
 
 test_that("compute_outside_label_layout creates separated outside columns", {
   prepared <- make_layout_ready(mini_volcano_data())
-  label_data <- prepared[prepared$gene %in% c("Vip", "Sst", "Gad1", "Slc17a7"), , drop = FALSE]
+  label_data <- prepared[prepared$gene %in% c("Viren", "Sorin", "Gavon1", "Laxen7"), , drop = FALSE]
 
   layout <- compute_outside_label_layout(label_data, plot_xmax = 6, ymax = 20)
 
   expect_true(all(c(".label_anchor_x", ".label_text_x", ".label_y", ".label_hjust", ".label_side") %in% names(layout)))
-  expect_equal(layout$.label_side[layout$gene == "Sst"], "left")
-  expect_equal(layout$.label_side[layout$gene == "Vip"], "right")
+  expect_equal(layout$.label_side[layout$gene == "Sorin"], "left")
+  expect_equal(layout$.label_side[layout$gene == "Viren"], "right")
   expect_lte(length(unique(layout$.label_hjust[layout$.label_side == "right"])), 1)
   expect_lte(length(unique(layout$.label_hjust[layout$.label_side == "left"])), 1)
   expect_equal(anyDuplicated(paste(layout$.label_side, round(layout$.label_y, 6))), 0)
@@ -32,8 +32,8 @@ test_that("compute_outside_label_layout creates separated outside columns", {
 })
 
 test_that("default left labels use one text direction and clear the axis", {
-  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Sst", "Pvalb"))
-  label_data <- prepared[prepared$gene %in% c("Sst", "Pvalb"), , drop = FALSE]
+  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Sorin", "Pavon"))
+  label_data <- prepared[prepared$gene %in% c("Sorin", "Pavon"), , drop = FALSE]
 
   layout <- compute_outside_label_layout(label_data, plot_xmax = 6, ymax = 20)
   left_layout <- layout[layout$.label_side == "left", , drop = FALSE]
@@ -46,8 +46,8 @@ test_that("default left labels use one text direction and clear the axis", {
 })
 
 test_that("default right labels use one text direction and stay inside the device", {
-  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Vip", "Slc17a7"))
-  label_data <- prepared[prepared$gene %in% c("Vip", "Slc17a7"), , drop = FALSE]
+  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Viren", "Laxen7"))
+  label_data <- prepared[prepared$gene %in% c("Viren", "Laxen7"), , drop = FALSE]
 
   layout <- compute_outside_label_layout(label_data, plot_xmax = 6, ymax = 20)
   right_layout <- layout[layout$.label_side == "right", , drop = FALSE]
@@ -60,8 +60,8 @@ test_that("default right labels use one text direction and stay inside the devic
 })
 
 test_that("adaptive layout permits more detail for a few long labels", {
-  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Vip", "Sst"))
-  label_data <- prepared[prepared$gene %in% c("Vip", "Sst"), , drop = FALSE]
+  prepared <- make_layout_ready(mini_volcano_data(), labels = c("Viren", "Sorin"))
+  label_data <- prepared[prepared$gene %in% c("Viren", "Sorin"), , drop = FALSE]
   label_data$.volcano_label <- paste0(
     label_data$gene,
     "-LongSegment/NeuronMarker;AlphaBetaGammaDelta"
@@ -189,18 +189,18 @@ test_that("demo-like left labels clear the y-axis safety zone", {
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
-  selected <- c("Vip", "Sst", "Gad1", "Gad2", "Slc17a7", "Pvalb", "Rps6ka2")
+  selected <- demo_label_genes()
   prepared <- make_layout_ready(data, labels = selected)
   label_data <- prepared[!is.na(prepared$.volcano_label), , drop = FALSE]
   plot_xmax <- 7.8
   ymax <- max(prepared$.volcano_y) * 1.06
 
   layout <- compute_outside_label_layout(label_data, plot_xmax = plot_xmax, ymax = ymax)
-  rps6ka2 <- layout[layout$gene == "Rps6ka2", , drop = FALSE]
+  ralon6 <- layout[layout$gene == "Ralon6", , drop = FALSE]
 
-  expect_equal(nrow(rps6ka2), 1)
-  expect_gt(rps6ka2$.label_text_x, -plot_xmax * 0.76)
-  expect_lt(rps6ka2$.label_text_x, -plot_xmax * 0.18)
-  expect_equal(rps6ka2$.label_hjust, 1)
-  expect_lt(rps6ka2$.label_text_x, rps6ka2$.label_anchor_x)
+  expect_equal(nrow(ralon6), 1)
+  expect_gt(ralon6$.label_text_x, -plot_xmax * 0.76)
+  expect_lt(ralon6$.label_text_x, -plot_xmax * 0.18)
+  expect_equal(ralon6$.label_hjust, 1)
+  expect_lt(ralon6$.label_text_x, ralon6$.label_anchor_x)
 })

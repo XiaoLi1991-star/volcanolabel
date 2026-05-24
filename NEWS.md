@@ -1,3 +1,15 @@
+# volcanolabel 0.1.1
+
+- Refined README/release example figure with anonymized gene identifiers,
+  wider outside label columns, and custom palette auto rings.
+- Added optional `label_anchor_x_left` and `label_anchor_x_right` controls to
+  `volcano_plot()` for publication figures that need fixed outside label
+  columns.
+- Increased the default gap between outside label anchor dots and label text so
+  text does not visually sit on top of the anchor dot.
+- Redraw labelled source points above their rings so the ring highlights the
+  point without covering or clipping the original filled circle.
+
 # volcanolabel 0.1.0
 
 Initial release.

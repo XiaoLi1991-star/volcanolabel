@@ -1,6 +1,6 @@
 Package: volcanolabel
 Title: Elegant Volcano Plots with Ordered Outside Labels
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Jianhua", "Zhu", email = "XiaoLi1991-star@users.noreply.github.com", role = c("aut", "cre"))
 Author: Jianhua Zhu [aut, cre]
 Maintainer: Jianhua Zhu <XiaoLi1991-star@users.noreply.github.com>

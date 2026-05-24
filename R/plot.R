@@ -40,6 +40,9 @@
 #'   from label length and density.
 #' @param label_max_lines Maximum number of lines per label before capping with
 #'   an ellipsis. Use `"auto"` to allow more detail only when labels are sparse.
+#' @param label_anchor_x_left,label_anchor_x_right Optional x positions for the
+#'   left and right outside label anchor columns. Leave as `NULL` for automatic
+#'   placement.
 #' @param plot_xmax Optional x-axis half-width.
 #' @param ymax Optional y-axis maximum.
 #' @param base_size Base font size.
@@ -77,6 +80,8 @@ volcano_plot <- function(data,
                          label_point_ring_stroke = 0.85,
                          label_wrap_width = "auto",
                          label_max_lines = "auto",
+                         label_anchor_x_left = NULL,
+                         label_anchor_x_right = NULL,
                          plot_xmax = NULL,
                          ymax = NULL,
                          base_size = 12,
@@ -110,6 +115,8 @@ volcano_plot <- function(data,
   label_point_ring_alpha <- check_plot_number(label_point_ring_alpha, "label_point_ring_alpha", min = 0, max = 1)
   label_point_ring_size <- check_plot_number(label_point_ring_size, "label_point_ring_size", min = .Machine$double.eps)
   label_point_ring_stroke <- check_plot_number(label_point_ring_stroke, "label_point_ring_stroke", min = 0)
+  label_anchor_x_left <- normalize_optional_anchor_x(label_anchor_x_left, "label_anchor_x_left")
+  label_anchor_x_right <- normalize_optional_anchor_x(label_anchor_x_right, "label_anchor_x_right")
 
   max_fc <- max(abs(prepared$.volcano_x), abs(x_cutoff_value %||% NA_real_), na.rm = TRUE)
   if (!is.finite(max_fc) || max_fc <= 0) {
@@ -161,6 +168,8 @@ volcano_plot <- function(data,
         plot_xmax = plot_xmax,
         ymax = ymax,
         label_col = ".volcano_label",
+        anchor_x_left = label_anchor_x_left,
+        anchor_x_right = label_anchor_x_right,
         wrap_width = label_wrap_width,
         max_lines = label_max_lines,
         point_data = prepared
@@ -251,6 +260,8 @@ volcano_plot <- function(data,
       plot,
       label_layout,
       palette = palette,
+      point_size = point_size,
+      point_alpha = point_alpha,
       label_size = label_size,
       label_color = label_color,
       label_segment_color = label_segment_color,
@@ -331,6 +342,16 @@ normalize_plot_cutoff <- function(value, name) {
   }
   if (!is.numeric(value) || length(value) != 1 || is.na(value)) {
     stop(name, " must be NULL or a single numeric value", call. = FALSE)
+  }
+  as.numeric(value)
+}
+
+normalize_optional_anchor_x <- function(value, name) {
+  if (is.null(value) || length(value) == 0) {
+    return(NULL)
+  }
+  if (!is.numeric(value) || length(value) != 1 || !is.finite(value)) {
+    stop(name, " must be NULL or a single finite numeric value", call. = FALSE)
   }
   as.numeric(value)
 }
@@ -484,6 +505,8 @@ add_label_sides <- function(label_data) {
 add_outside_label_layers <- function(plot,
                                      label_layout,
                                      palette,
+                                     point_size,
+                                     point_alpha,
                                      label_size,
                                      label_color,
                                      label_segment_color,
@@ -554,15 +577,16 @@ add_outside_label_layers <- function(plot,
       show.legend = FALSE
     )
   if (label_point_ring_color %in% c("auto", "group")) {
-    label_layout$.label_ring_color <- resolve_label_ring_colors(
-      label_layout,
+    ring_layout <- label_layout
+    ring_layout$.label_ring_color <- resolve_label_ring_colors(
+      ring_layout,
       palette = palette,
       label_point_ring_color = label_point_ring_color,
       label_point_ring_normal_color = label_point_ring_normal_color
     )
     out <- out +
       ggplot2::geom_point(
-        data = label_layout,
+        data = ring_layout,
         ggplot2::aes(x = .volcano_x, y = .volcano_y, color = I(.label_ring_color)),
         inherit.aes = FALSE,
         shape = 21,
@@ -588,6 +612,16 @@ add_outside_label_layers <- function(plot,
       )
   }
   out +
+    ggplot2::geom_point(
+      data = label_layout,
+      ggplot2::aes(x = .volcano_x, y = .volcano_y, color = regulation, fill = regulation),
+      inherit.aes = FALSE,
+      shape = 21,
+      size = point_size,
+      stroke = 0.12,
+      alpha = 1,
+      show.legend = FALSE
+    ) +
     ggplot2::geom_text(
       data = label_layout,
       ggplot2::aes(x = .label_text_x, y = .label_y, label = .volcano_label, hjust = .label_hjust),

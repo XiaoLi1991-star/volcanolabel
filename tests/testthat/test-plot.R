@@ -37,8 +37,9 @@ test_that("marked point rings can use independent fixed styling", {
   )
 
   point_layers <- Filter(function(layer) inherits(layer$geom, "GeomPoint"), plot$layers)
-  halo_layer <- point_layers[[length(point_layers) - 1]]
-  ring_layer <- point_layers[[length(point_layers)]]
+  halo_layer <- point_layers[[length(point_layers) - 2]]
+  ring_layer <- point_layers[[length(point_layers) - 1]]
+  source_redraw_layer <- point_layers[[length(point_layers)]]
 
   expect_identical(halo_layer$aes_params$colour, "#E5E7EB")
   expect_equal(halo_layer$aes_params$alpha, 0.93)
@@ -48,6 +49,9 @@ test_that("marked point rings can use independent fixed styling", {
   expect_equal(ring_layer$aes_params$alpha, 0.91)
   expect_equal(ring_layer$aes_params$size, 3.1)
   expect_equal(ring_layer$aes_params$stroke, 0.95)
+  expect_true(inherits(source_redraw_layer$geom, "GeomPoint"))
+  expect_true(".volcano_x" %in% names(source_redraw_layer$data))
+  expect_equal(source_redraw_layer$aes_params$size, 1.55)
 })
 
 test_that("marked point rings use adaptive group-aware auto colors by default", {
@@ -60,12 +64,12 @@ test_that("marked point rings use adaptive group-aware auto colors by default", 
   )
 
   point_layers <- Filter(function(layer) inherits(layer$geom, "GeomPoint"), plot$layers)
-  ring_data <- point_layers[[length(point_layers)]]$data
+  ring_data <- point_layers[[length(point_layers) - 1]]$data
 
   expect_true(".label_ring_color" %in% names(ring_data))
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Gad1"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Normal"]]))
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Vip"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Up"]]))
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Sst"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Down"]]))
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Gavon1"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Normal"]]))
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Viren"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Up"]]))
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Sorin"], volcanolabel:::adaptive_ring_color(volcano_palette()[["Down"]]))
   expect_false(any(ring_data$.label_ring_color %in% unname(volcano_palette())))
   expect_false(any(ring_data$.label_ring_color == "#111827"))
 })
@@ -82,15 +86,15 @@ test_that("auto rings adapt when point colors change", {
   )
 
   point_layers <- Filter(function(layer) inherits(layer$geom, "GeomPoint"), plot$layers)
-  ring_data <- point_layers[[length(point_layers)]]$data
-  normal_ring <- ring_data$.label_ring_color[ring_data$.volcano_label == "Gad1"]
+  ring_data <- point_layers[[length(point_layers) - 1]]$data
+  normal_ring <- ring_data$.label_ring_color[ring_data$.volcano_label == "Gavon1"]
 
   expect_equal(normal_ring, volcanolabel:::adaptive_ring_color(palette[["Normal"]]))
   expect_false(identical(normal_ring, "#6B7280"))
   expect_false(identical(normal_ring, palette[["Normal"]]))
   expect_lt(volcanolabel:::relative_color_luminance(normal_ring), volcanolabel:::relative_color_luminance(palette[["Normal"]]))
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Vip"], volcanolabel:::adaptive_ring_color(palette[["Up"]]))
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Sst"], volcanolabel:::adaptive_ring_color(palette[["Down"]]))
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Viren"], volcanolabel:::adaptive_ring_color(palette[["Up"]]))
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Sorin"], volcanolabel:::adaptive_ring_color(palette[["Down"]]))
   expect_false(any(ring_data$.label_ring_color %in% unname(palette)))
 })
 
@@ -105,9 +109,9 @@ test_that("marked point rings can still follow group colors when requested", {
   )
 
   point_layers <- Filter(function(layer) inherits(layer$geom, "GeomPoint"), plot$layers)
-  ring_data <- point_layers[[length(point_layers)]]$data
+  ring_data <- point_layers[[length(point_layers) - 1]]$data
 
-  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Gad1"], volcano_palette()[["Normal"]])
+  expect_equal(ring_data$.label_ring_color[ring_data$.volcano_label == "Gavon1"], volcano_palette()[["Normal"]])
 })
 
 test_that("rendered labels do not create a white box when placed directly over points", {
@@ -174,6 +178,8 @@ test_that("rendered labels do not create a white box when placed directly over p
     base_plot,
     label_layout,
     palette = volcano_palette(),
+    point_size = 1.55,
+    point_alpha = 0.78,
     label_size = 10,
     label_color = "#111111",
     label_segment_color = "#9AA4B2",
@@ -191,6 +197,29 @@ test_that("rendered labels do not create a white box when placed directly over p
   expect_lte(count_white_pixels(actual_plot), 5)
 })
 
+test_that("labelled source points are redrawn above rings so rings do not cover the point fill", {
+  plot <- volcano_plot(
+    mini_volcano_data(),
+    x = "log2FC",
+    y = "neg_log10_p",
+    label = "plot_label",
+    color = "direction",
+    point_size = 1.8,
+    point_alpha = 0.78
+  )
+
+  point_layers <- Filter(function(layer) inherits(layer$geom, "GeomPoint"), plot$layers)
+  ring_layer <- point_layers[[length(point_layers) - 1]]
+  source_redraw_layer <- point_layers[[length(point_layers)]]
+
+  expect_true(".label_ring_color" %in% names(ring_layer$data))
+  expect_false(".label_ring_color" %in% names(source_redraw_layer$data))
+  expect_equal(source_redraw_layer$aes_params$size, 1.8)
+  expect_equal(source_redraw_layer$aes_params$alpha, 1)
+  expect_equal(all.vars(source_redraw_layer$mapping$fill), "regulation")
+  expect_equal(all.vars(source_redraw_layer$mapping$colour), "regulation")
+})
+
 test_that("volcano_plot keeps the demo layout compact when labels are short", {
   data <- utils::read.table(
     system.file("extdata", "gene_expression.txt", package = "volcanolabel"),
@@ -201,7 +230,7 @@ test_that("volcano_plot keeps the demo layout compact when labels are short", {
   )
   data <- make_plot_ready(
     data,
-    labels = c("Vip", "Sst", "Gad1", "Gad2", "Slc17a7", "Pvalb", "Rps6ka2")
+    labels = demo_label_genes()
   )
   plot <- volcano_plot(
     data,
@@ -230,6 +259,26 @@ test_that("volcano_plot tightens edge-hugging labels by allowing inside side tex
   expect_lt(max(abs(plot$coordinates$limits$x)), 10.5)
 })
 
+test_that("volcano_plot can use fixed outside label anchor columns", {
+  plot <- volcano_plot(
+    mini_volcano_data(),
+    x = "log2FC",
+    y = "neg_log10_p",
+    label = "plot_label",
+    color = "direction",
+    label_anchor_x_left = -5.0,
+    label_anchor_x_right = 5.0,
+    plot_xmax = 5.9
+  )
+
+  text_layers <- Filter(function(layer) inherits(layer$geom, "GeomText"), plot$layers)
+  label_data <- text_layers[[length(text_layers)]]$data
+
+  expect_true(any(label_data$.label_anchor_x == -5.0))
+  expect_true(any(label_data$.label_anchor_x == 5.0))
+  expect_gte(min(abs(label_data$.label_text_x - label_data$.label_anchor_x)), 5.9 * 0.028)
+})
+
 test_that("save_volcano writes a non-empty image file", {
   plot <- volcano_plot(mini_volcano_data(), x = "log2FC", y = "neg_log10_p", label = "plot_label", color = "direction")
   path <- tempfile(fileext = ".png")
@@ -249,7 +298,7 @@ test_that("bundled example data can be plotted after user prepares plotting colu
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
-  data <- make_plot_ready(data, labels = c("Vip", "Sst"))
+  data <- make_plot_ready(data, labels = c("Viren", "Sorin"))
   plot <- volcano_plot(data, x = "log2FC", y = "neg_log10_p", label = "plot_label", color = "direction")
 
   expect_true(all(c("gene", "log2FC", "pvalue", "padjs") %in% names(data)))
