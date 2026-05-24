@@ -1,0 +1,25 @@
+Package: volcanolabel
+Title: Elegant Volcano Plots with Ordered Outside Labels
+Version: 0.1.0
+Authors@R: person("Jianhua", "Zhu", email = "XiaoLi1991-star@users.noreply.github.com", role = c("aut", "cre"))
+Author: Jianhua Zhu [aut, cre]
+Maintainer: Jianhua Zhu <XiaoLi1991-star@users.noreply.github.com>
+Description: Builds publication-ready volcano plots from already prepared
+    plotting columns, with polished themes and outside label columns that route
+    labels back to their genes with compact elbow connectors.
+License: MIT + file LICENSE
+URL: https://github.com/XiaoLi1991-star/volcanolabel
+BugReports: https://github.com/XiaoLi1991-star/volcanolabel/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    ggplot2,
+    grDevices,
+    grid,
+    stats
+Suggests:
+    png,
+    ragg,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

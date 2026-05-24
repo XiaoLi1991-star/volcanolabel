@@ -1,0 +1,13 @@
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rcheck/
+*.tar.gz
+*.o
+*.so
+*.dll
+*.log
+*.tmp
+Thumbs.db
+.DS_Store

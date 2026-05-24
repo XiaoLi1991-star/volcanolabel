@@ -1,0 +1,15 @@
+utils::globalVariables(c(
+  ".label_anchor_x",
+  ".label_hjust",
+  ".label_ring_color",
+  ".label_text_x",
+  ".label_y",
+  ".volcano_label",
+  ".volcano_x",
+  ".volcano_y",
+  "regulation",
+  "x",
+  "xend",
+  "y",
+  "yend"
+))
