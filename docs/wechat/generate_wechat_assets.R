@@ -5,10 +5,17 @@ devtools::load_all(".", quiet = TRUE)
 
 asset_dir <- file.path("docs", "wechat", "assets")
 dir.create(asset_dir, recursive = TRUE, showWarnings = FALSE)
+unlink(list.files(asset_dir, pattern = "\\.(png|jpg)$|IMAGE_MANIFEST\\.tsv$", full.names = TRUE))
 
 font_family <- ""
 main_plot_path <- file.path("man", "figures", "README-auto-ring-redraw-v2.png")
 article_main_path <- file.path(asset_dir, "article-01-main-volcano-1080x788.png")
+article_before_after_path <- file.path(asset_dir, "article-02-before-after-v2-1080x720.png")
+cover_png_path <- file.path(asset_dir, "wechat-cover-v2-900x383.png")
+cover_jpg_path <- file.path(asset_dir, "wechat-cover-v2-900x383.jpg")
+cover_retina_path <- file.path(asset_dir, "wechat-cover-v2-retina-1800x766.png")
+square_png_path <- file.path(asset_dir, "wechat-square-v2-1080x1080.png")
+square_jpg_path <- file.path(asset_dir, "wechat-square-v2-1080x1080.jpg")
 
 x_cutoff <- log2(1.2)
 y_cutoff <- -log10(0.05)
@@ -33,6 +40,46 @@ expr$Regulation <- ifelse(
   ifelse(expr$log2FC <= -x_cutoff & expr$neg_log10_p >= y_cutoff, "Down", "Normal")
 )
 expr$plot_label <- ifelse(expr$gene %in% labels, expr$gene, NA_character_)
+
+cover_labels <- c("Mefra", "Ashor", "Cirob2", "Ervon", "Dorin", "Corin", "Viren", "Gavon1")
+cover_expr <- expr
+cover_expr$cover_label <- ifelse(cover_expr$gene %in% cover_labels, cover_expr$gene, NA_character_)
+
+cover_plot <- volcano_plot(
+  cover_expr,
+  x = "log2FC",
+  y = "neg_log10_p",
+  label = "cover_label",
+  color = "Regulation",
+  palette = custom_palette,
+  x_cutoff = x_cutoff,
+  y_cutoff = y_cutoff,
+  point_size = 1.15,
+  point_alpha = 0.76,
+  label_size = 2.8,
+  label_segment_size = 0.28,
+  label_segment_alpha = 0.82,
+  label_point_ring_color = "auto",
+  label_point_ring_size = 2.35,
+  label_point_ring_halo_size = 3.0,
+  label_anchor_x_left = -3.7,
+  label_anchor_x_right = 3.8,
+  plot_xmax = 4.85,
+  ymax = 6.25,
+  xlab = NULL,
+  ylab = NULL,
+  base_size = 8.5,
+  legend_position = "none"
+) +
+  ggplot2::theme(
+    axis.title = ggplot2::element_blank(),
+    axis.text = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_blank(),
+    axis.line = ggplot2::element_blank(),
+    plot.title = ggplot2::element_blank(),
+    plot.subtitle = ggplot2::element_blank(),
+    plot.margin = ggplot2::margin(0, 0, 0, 0)
+  )
 
 save_png <- function(path, width, height, draw, res = 144) {
   ragg::agg_png(path, width = width, height = height, units = "px", res = res, background = "white")
@@ -63,54 +110,37 @@ draw_ring_point <- function(x, y, fill, ring, size = 0.035) {
   grid.circle(x, y, r = unit(size * 0.54, "npc"), gp = gpar(fill = fill, col = fill, lwd = 1))
 }
 
+draw_cover_plot_panel <- function(x = 0.805, y = 0.52, width = 0.35, height = 0.74) {
+  pushViewport(viewport(x = x, y = y, width = width, height = height, clip = "on"))
+  grid.draw(ggplotGrob(cover_plot))
+  popViewport()
+}
+
 draw_cover <- function(scale = 1) {
   grid.rect(gp = gpar(fill = "#F7FAFC", col = NA))
-  grid.rect(x = 0.78, y = 0.5, width = 0.44, height = 1, gp = gpar(fill = "#FFFFFF", col = NA))
+  grid.rect(x = 0.805, y = 0.5, width = 0.39, height = 1, gp = gpar(fill = "#FFFFFF", col = NA))
   grid.text(
     "volcanolabel",
     x = 0.07,
     y = 0.74,
     just = c("left", "center"),
-    gp = gpar(col = "#17202B", fontsize = 38 * scale, fontface = "bold", fontfamily = font_family)
+    gp = gpar(col = "#17202B", fontsize = 34 * scale, fontface = "bold", fontfamily = font_family)
   )
   grid.text(
     "把火山图标签稳稳放好",
     x = 0.07,
     y = 0.57,
     just = c("left", "center"),
-    gp = gpar(col = "#475467", fontsize = 21 * scale, fontfamily = font_family)
+    gp = gpar(col = "#475467", fontsize = 19 * scale, fontfamily = font_family)
   )
   grid.text(
     "自动外侧标签 · 清晰连接线 · 自适应高亮圈",
     x = 0.07,
     y = 0.44,
     just = c("left", "center"),
-    gp = gpar(col = "#667085", fontsize = 13 * scale, fontfamily = font_family)
+    gp = gpar(col = "#667085", fontsize = 11.5 * scale, fontfamily = font_family)
   )
-  for (i in seq_len(70)) {
-    set.seed(24 + i)
-    side <- sample(c(-1, 1), 1)
-    x <- 0.71 + side * abs(rnorm(1, 0, 0.055))
-    y <- 0.18 + rbeta(1, 0.9, 3.8) * 0.56
-    group <- sample(names(custom_palette), 1, prob = c(0.22, 0.56, 0.22))
-    grid.circle(
-      x,
-      y,
-      r = unit(runif(1, 0.0045, 0.0065), "npc"),
-      gp = gpar(fill = custom_palette[[group]], col = NA, alpha = if (group == "Normal") 0.72 else 0.86)
-    )
-  }
-  x_anchor <- c(0.58, 0.58, 0.90, 0.90)
-  y_anchor <- c(0.72, 0.58, 0.70, 0.47)
-  point_x <- c(0.68, 0.66, 0.77, 0.76)
-  point_y <- c(0.52, 0.43, 0.58, 0.36)
-  point_cols <- c("#0077B6", "#0077B6", "#B42318", "#B42318")
-  ring_cols <- c("#7DB9D9", "#7DB9D9", "#D3847E", "#D3847E")
-  for (i in seq_along(x_anchor)) {
-    grid.lines(c(x_anchor[i], 0.70, point_x[i]), c(y_anchor[i], y_anchor[i], point_y[i]), gp = gpar(col = "#A5ADBA", lwd = 1.4))
-    grid.circle(x_anchor[i], y_anchor[i], r = unit(0.009, "npc"), gp = gpar(fill = point_cols[i], col = point_cols[i]))
-    draw_ring_point(point_x[i], point_y[i], point_cols[i], ring_cols[i], size = 0.016)
-  }
+  draw_cover_plot_panel()
   grid.text(
     "开源 R 包",
     x = 0.07,
@@ -120,10 +150,10 @@ draw_cover <- function(scale = 1) {
   )
 }
 
-save_png(file.path(asset_dir, "wechat-cover-900x383.png"), 900, 383, function() draw_cover(1))
-save_jpg(file.path(asset_dir, "wechat-cover-900x383.jpg"), 900, 383, function() draw_cover(1))
-save_png(file.path(asset_dir, "wechat-cover-retina-1800x766.png"), 1800, 766, function() draw_cover(2))
-save_png(file.path(asset_dir, "wechat-square-1080x1080.png"), 1080, 1080, function() {
+save_png(cover_png_path, 900, 383, function() draw_cover(1))
+save_jpg(cover_jpg_path, 900, 383, function() draw_cover(1))
+save_png(cover_retina_path, 1800, 766, function() draw_cover(2))
+save_png(square_png_path, 1080, 1080, function() {
   grid.rect(gp = gpar(fill = "#F7FAFC", col = NA))
   pushViewport(viewport(x = 0.5, y = 0.72, width = 0.90, height = 0.34))
   draw_cover(1.05)
@@ -131,7 +161,7 @@ save_png(file.path(asset_dir, "wechat-square-1080x1080.png"), 1080, 1080, functi
   img <- png::readPNG(main_plot_path)
   grid.raster(img, x = 0.5, y = 0.31, width = 0.84, height = 0.46, interpolate = TRUE)
 })
-save_jpg(file.path(asset_dir, "wechat-square-1080x1080.jpg"), 1080, 1080, function() {
+save_jpg(square_jpg_path, 1080, 1080, function() {
   grid.rect(gp = gpar(fill = "#F7FAFC", col = NA))
   pushViewport(viewport(x = 0.5, y = 0.72, width = 0.90, height = 0.34))
   draw_cover(1.05)
@@ -181,9 +211,10 @@ smart <- volcano_plot(
   x_cutoff = x_cutoff,
   y_cutoff = y_cutoff,
   label_point_ring_color = "auto",
-  label_anchor_x_left = -5.0,
-  label_anchor_x_right = 5.0,
-  plot_xmax = 5.9,
+  label_anchor_x_left = -3.3,
+  label_anchor_x_right = 4.55,
+  plot_xmax = 5.65,
+  ymax = 6.25,
   xlab = "log2FC",
   ylab = "-log10(pvalue)",
   title = "volcanolabel",
@@ -192,7 +223,7 @@ smart <- volcano_plot(
   legend_position = "none"
 )
 
-save_png(file.path(asset_dir, "article-02-before-after-1080x720.png"), 1080, 720, function() {
+save_png(article_before_after_path, 1080, 720, function() {
   grid.rect(gp = gpar(fill = "white", col = NA))
   pushViewport(viewport(x = 0.25, y = 0.50, width = 0.47, height = 0.88))
   grid.draw(ggplotGrob(naive))
@@ -248,16 +279,16 @@ dimensions <- vapply(files, function(path) {
 }, character(1))
 use_map <- c(
   "article-01-main-volcano-1080x788.png" = "article inline main figure",
-  "article-02-before-after-1080x720.png" = "before/after comparison",
+  "article-02-before-after-v2-1080x720.png" = "before/after comparison",
   "article-03-ring-rule-1080x720.png" = "ring color rule explainer",
   "article-04-api-flow-1080x720.png" = "API workflow explainer",
-  "wechat-cover-900x383.jpg" = "main WeChat cover JPG",
-  "wechat-cover-900x383.png" = "main WeChat cover",
-  "wechat-cover-retina-1800x766.png" = "retina WeChat cover",
+  "wechat-cover-v2-900x383.jpg" = "main WeChat cover JPG",
+  "wechat-cover-v2-900x383.png" = "main WeChat cover",
+  "wechat-cover-v2-retina-1800x766.png" = "retina WeChat cover",
   "wechat-share-500x400.jpg" = "share card JPG",
   "wechat-share-500x400.png" = "share card",
-  "wechat-square-1080x1080.jpg" = "square secondary cover JPG",
-  "wechat-square-1080x1080.png" = "square secondary cover"
+  "wechat-square-v2-1080x1080.jpg" = "square secondary cover JPG",
+  "wechat-square-v2-1080x1080.png" = "square secondary cover"
 )
 manifest <- data.frame(
   file = basename(files),
