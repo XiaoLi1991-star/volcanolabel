@@ -177,6 +177,17 @@ By default, `label_wrap_width = "auto"` and `label_max_lines = "auto"`. Sparse
 long labels get more room; dense long labels are compacted with ellipses and
 short suffixes so repeated truncated labels stay distinguishable.
 
+## WeChat Article Kit
+
+The repository includes a user-facing Chinese HTML guide and prepared article
+figures under `docs/wechat/`. The image manifest lists the confirmed dimensions
+for cover images, share cards, square covers, and in-article figures.
+
+## License
+
+MIT. The R package keeps the standard CRAN-style `LICENSE` stub and includes the
+full MIT text in `LICENSE.md`.
+
 ## Release Checks
 
 Before publishing the package, it was checked with:
@@ -184,7 +195,7 @@ Before publishing the package, it was checked with:
 ```r
 devtools::test("volcanolabel")
 R CMD build volcanolabel
-R CMD check --no-manual --no-build-vignettes volcanolabel_0.1.0.tar.gz
+R CMD check --no-manual --no-build-vignettes volcanolabel_0.1.1.tar.gz
 ```
 
 The visual regression checks include a direct label-over-point case to guard
