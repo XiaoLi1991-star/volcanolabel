@@ -177,12 +177,6 @@ By default, `label_wrap_width = "auto"` and `label_max_lines = "auto"`. Sparse
 long labels get more room; dense long labels are compacted with ellipses and
 short suffixes so repeated truncated labels stay distinguishable.
 
-## WeChat Article Kit
-
-The repository includes a user-facing Chinese HTML guide and prepared article
-figures under `docs/wechat/`. The image manifest lists the confirmed dimensions
-for cover images, share cards, square covers, and in-article figures.
-
 ## License
 
 MIT. The R package keeps the standard CRAN-style `LICENSE` stub and includes the

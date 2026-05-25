@@ -9,5 +9,6 @@
 *.dll
 *.log
 *.tmp
+docs/wechat/
 Thumbs.db
 .DS_Store
