@@ -145,6 +145,10 @@ p <- volcano_plot(
   points stay visible inside dense same-color point clouds even after you
   change palettes. Use `label_point_ring_color = "group"` for exact group
   colors.
+- Each `volcano_plot()` call prints resolved automatic parameters with
+  `message()`, including x/y ranges, label anchors, wrapping, text-side
+  decisions, and auto ring colors, so agent-assisted tuning can reuse the exact
+  previous values.
 - Threshold cutoffs are visual guides only; the package never reclassifies your
   data.
 - Counted legends, flexible palettes, and publication-ready defaults.

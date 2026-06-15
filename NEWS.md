@@ -1,5 +1,8 @@
 # volcanolabel 0.1.1
 
+- Print resolved automatic plotting parameters from `volcano_plot()` with
+  `message()` to make later agent-assisted layout and color tuning easier to
+  reproduce.
 - Refined README/release example figure with anonymized gene identifiers,
   wider outside label columns, and custom palette auto rings.
 - Added optional `label_anchor_x_left` and `label_anchor_x_right` controls to

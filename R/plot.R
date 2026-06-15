@@ -4,6 +4,9 @@
 #' columns. The function does not read files, transform p-values, classify
 #' genes, or choose labels. It focuses on the drawing layer: soft points,
 #' threshold guides, counted legends, and adaptive outside label columns.
+#' Every call prints resolved automatic parameters with [message()] so
+#' agent-assisted tuning can start from the exact values used in the previous
+#' plot.
 #'
 #' @param data A data frame containing plotting-ready columns.
 #' @param x,y Column names for the x and y positions. For a typical volcano
@@ -146,7 +149,8 @@ volcano_plot <- function(data,
       plot_xmax <- max_fc * 1.10
     }
   }
-  if (is.null(ymax) || is.na(ymax)) {
+  ymax_auto <- is.null(ymax) || is.na(ymax)
+  if (ymax_auto) {
     ymax <- max_y * 1.06
     if (nrow(label_data) > 0) {
       ymax <- max(
@@ -278,6 +282,29 @@ volcano_plot <- function(data,
       label_point_ring_stroke = label_point_ring_stroke
     )
   }
+
+  message_resolved_volcano_params(
+    x = x,
+    y = y,
+    label = label,
+    color = color,
+    palette = palette,
+    x_cutoff = x_cutoff_value,
+    y_cutoff = y_cutoff_value,
+    plot_xmax = plot_xmax,
+    ymax = ymax,
+    plot_xmax_auto = plot_xmax_auto,
+    ymax_auto = ymax_auto,
+    label_layout = label_layout,
+    point_size = point_size,
+    point_alpha = point_alpha,
+    label_size = label_size,
+    label_segment_size = label_segment_size,
+    label_point_ring_color = label_point_ring_color,
+    label_point_ring_normal_color = label_point_ring_normal_color,
+    label_point_ring_size = label_point_ring_size,
+    label_point_ring_halo_size = label_point_ring_halo_size
+  )
 
   plot
 }
@@ -683,4 +710,173 @@ color_contrast_ratio <- function(color_a, color_b) {
   lum_a <- relative_color_luminance(color_a)
   lum_b <- relative_color_luminance(color_b)
   (max(lum_a, lum_b) + 0.05) / (min(lum_a, lum_b) + 0.05)
+}
+
+message_resolved_volcano_params <- function(x,
+                                            y,
+                                            label,
+                                            color,
+                                            palette,
+                                            x_cutoff,
+                                            y_cutoff,
+                                            plot_xmax,
+                                            ymax,
+                                            plot_xmax_auto,
+                                            ymax_auto,
+                                            label_layout,
+                                            point_size,
+                                            point_alpha,
+                                            label_size,
+                                            label_segment_size,
+                                            label_point_ring_color,
+                                            label_point_ring_normal_color,
+                                            label_point_ring_size,
+                                            label_point_ring_halo_size) {
+  label_counts <- resolved_label_counts(label_layout)
+  lines <- c(
+    "volcanolabel resolved parameters",
+    "volcano_plot:",
+    paste0("  x: ", x),
+    paste0("  y: ", y),
+    paste0("  label: ", format_resolved_value(label)),
+    paste0("  color: ", format_resolved_value(color)),
+    paste0("  palette: ", format_named_values(palette)),
+    paste0("  x_cutoff: ", format_resolved_number(x_cutoff)),
+    paste0("  y_cutoff: ", format_resolved_number(y_cutoff)),
+    paste0("  plot_xmax: ", format_resolved_number(plot_xmax)),
+    paste0("  plot_xmax_auto: ", format_resolved_value(plot_xmax_auto)),
+    paste0("  ymax: ", format_resolved_number(ymax)),
+    paste0("  ymax_auto: ", format_resolved_value(ymax_auto)),
+    paste0("  point_size: ", format_resolved_number(point_size)),
+    paste0("  point_alpha: ", format_resolved_number(point_alpha)),
+    "label_layout:",
+    paste0("  label_count: ", sum(label_counts)),
+    paste0("  label_count_left: ", label_counts[["left"]]),
+    paste0("  label_count_right: ", label_counts[["right"]]),
+    paste0("  label_anchor_x_left: ", format_resolved_number(resolved_label_anchor(label_layout, "left"))),
+    paste0("  label_anchor_x_right: ", format_resolved_number(resolved_label_anchor(label_layout, "right"))),
+    paste0("  label_text_side_left: ", resolved_label_text_side(label_layout, "left")),
+    paste0("  label_text_side_right: ", resolved_label_text_side(label_layout, "right")),
+    paste0("  label_wrap_width: ", format_resolved_number(resolved_label_setting(label_layout, ".label_wrap_width"))),
+    paste0("  label_max_lines: ", format_resolved_number(resolved_label_setting(label_layout, ".label_max_lines"))),
+    paste0("  label_size: ", format_resolved_number(label_size)),
+    paste0("  label_segment_size: ", format_resolved_number(label_segment_size)),
+    paste0("  label_point_ring_color: ", label_point_ring_color),
+    paste0("  label_point_ring_normal_color: ", label_point_ring_normal_color),
+    paste0("  label_point_ring_size: ", format_resolved_number(label_point_ring_size)),
+    paste0("  label_point_ring_halo_size: ", format_resolved_number(label_point_ring_halo_size)),
+    paste0("  label_point_ring_colors: ", resolved_label_ring_color_summary(
+      palette,
+      label_point_ring_color,
+      label_point_ring_normal_color
+    ))
+  )
+  message(paste(lines, collapse = "\n"))
+}
+
+resolved_label_counts <- function(label_layout) {
+  if (is.null(label_layout) || nrow(label_layout) == 0) {
+    return(c(left = 0L, right = 0L))
+  }
+  counts <- table(factor(label_layout$.label_side, levels = c("left", "right")))
+  c(left = as.integer(counts[["left"]]), right = as.integer(counts[["right"]]))
+}
+
+resolved_label_anchor <- function(label_layout, side) {
+  if (is.null(label_layout) || nrow(label_layout) == 0) {
+    return(NULL)
+  }
+  values <- unique(label_layout$.label_anchor_x[label_layout$.label_side == side])
+  values <- values[is.finite(values)]
+  if (length(values) == 0) {
+    return(NULL)
+  }
+  values[1]
+}
+
+resolved_label_text_side <- function(label_layout, side) {
+  if (is.null(label_layout) || nrow(label_layout) == 0) {
+    return("none")
+  }
+  hjust <- unique(label_layout$.label_hjust[label_layout$.label_side == side])
+  hjust <- hjust[is.finite(hjust)]
+  if (length(hjust) == 0) {
+    return("none")
+  }
+  if (all(hjust == 1)) {
+    return("left")
+  }
+  if (all(hjust == 0)) {
+    return("right")
+  }
+  "mixed"
+}
+
+resolved_label_setting <- function(label_layout, name) {
+  if (is.null(label_layout) || nrow(label_layout) == 0 || !name %in% names(label_layout)) {
+    return(NULL)
+  }
+  values <- unique(label_layout[[name]])
+  values <- values[!is.na(values)]
+  if (length(values) == 0) {
+    return(NULL)
+  }
+  values[1]
+}
+
+resolved_label_ring_color_summary <- function(palette,
+                                              label_point_ring_color,
+                                              label_point_ring_normal_color) {
+  if (!label_point_ring_color %in% c("auto", "group")) {
+    return(label_point_ring_color)
+  }
+  ring_layout <- data.frame(regulation = names(palette), stringsAsFactors = FALSE)
+  colors <- resolve_label_ring_colors(
+    ring_layout,
+    palette = palette,
+    label_point_ring_color = label_point_ring_color,
+    label_point_ring_normal_color = label_point_ring_normal_color
+  )
+  names(colors) <- names(palette)
+  format_named_values(colors)
+}
+
+format_named_values <- function(values) {
+  if (is.null(values) || length(values) == 0) {
+    return("NULL")
+  }
+  names <- names(values)
+  if (is.null(names) || any(!nzchar(names))) {
+    return(paste(format_resolved_value(values), collapse = ", "))
+  }
+  paste(paste0(names, "=", unname(values)), collapse = ", ")
+}
+
+format_resolved_value <- function(value) {
+  if (is.null(value) || length(value) == 0) {
+    return("NULL")
+  }
+  if (is.logical(value)) {
+    return(ifelse(value, "TRUE", "FALSE"))
+  }
+  if (is.numeric(value)) {
+    return(format_resolved_number(value))
+  }
+  paste(as.character(value), collapse = ", ")
+}
+
+format_resolved_number <- function(value) {
+  if (is.null(value) || length(value) == 0) {
+    return("NULL")
+  }
+  if (!is.numeric(value)) {
+    return(format_resolved_value(value))
+  }
+  if (any(!is.finite(value))) {
+    value <- value[is.finite(value)]
+  }
+  if (length(value) == 0) {
+    return("NULL")
+  }
+  paste(format(round(value, 4), trim = TRUE, scientific = FALSE), collapse = ", ")
 }

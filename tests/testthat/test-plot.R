@@ -19,6 +19,31 @@ test_that("volcano_plot returns a ggplot with polished outside labels", {
   expect_false(any(tolower(as.character(layer_params)) %in% c("white", "#ffffff", "#ffffffff")))
 })
 
+test_that("volcano_plot prints resolved automatic parameters for agent tuning", {
+  msg <- paste(capture.output(
+    plot <- volcano_plot(
+      mini_volcano_data(),
+      x = "log2FC",
+      y = "neg_log10_p",
+      label = "plot_label",
+      color = "direction",
+      x_cutoff = log2(1.2),
+      y_cutoff = -log10(0.05)
+    ),
+    type = "message"
+  ), collapse = "\n")
+  expect_s3_class(plot, "ggplot")
+
+  expect_match(msg, "volcanolabel resolved parameters")
+  expect_match(msg, "plot_xmax:")
+  expect_match(msg, "ymax:")
+  expect_match(msg, "label_count:")
+  expect_match(msg, "label_anchor_x_left:")
+  expect_match(msg, "label_text_side_left:")
+  expect_match(msg, "label_wrap_width:")
+  expect_match(msg, "label_point_ring_colors:")
+})
+
 test_that("marked point rings can use independent fixed styling", {
   plot <- volcano_plot(
     mini_volcano_data(),

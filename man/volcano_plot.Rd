@@ -119,4 +119,7 @@ Builds a publication-ready volcano plot from already prepared plotting
 columns. The function does not read files, transform p-values, classify
 genes, or choose labels. It focuses on the drawing layer: soft points,
 threshold guides, counted legends, and adaptive outside label columns.
+Every call prints resolved automatic parameters with \code{\link[=message]{message()}} so
+agent-assisted tuning can start from the exact values used in the previous
+plot.
 }
